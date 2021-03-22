@@ -11,15 +11,18 @@
     "@ckeditor/ckeditor5-build-classic": "^26.0.0",
     "@ckeditor/ckeditor5-font": "^26.0.0",
     "@ckeditor/ckeditor5-react": "^3.0.2",
+    "@sweetalert/with-react": "^0.1.1",
     "dotenv-webpack": "^7.0.2",
     "firebase": "^8.3.1",
+    "moment": "^2.29.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-firebase-hooks": "^3.0.3",
     "react-responsive": "^8.2.0",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "styled-components": "^5.2.1"
+    "styled-components": "^5.2.1",
+    "sweetalert": "^2.1.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.13.10",
@@ -39,7 +42,7 @@
   },
   "scripts": {
     "build": "webpack --mode production --config webpack.config.js",
-    "dev": "webpack serve --mode development --config webpack.config.dev.js --open"
+    "dev": "webpack serve --mode development --config webpack.config.dev.js"
   },
   "keywords": [],
   "author": "Bruno Cal <br1calolivera@gmail.com>",

@@ -154,6 +154,28 @@ export const Text = styled.p`
     `}
 `;
 
+export const SwalText = styled.p`
+  font-family: "Montserrat", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.2vw;
+  color: rgba(0, 0, 0, 0.64);
+  text-decoration: none;
+  text-align: center;
+  margin: 0;
+`;
+
+export const SwalTitle = styled.h1`
+  font-family: "Montserrat", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 2vw;
+  text-decoration: none;
+  text-align: center;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+`;
+
 export const Vieweable = styled.div`
   width: 100%;
   height: auto;
@@ -163,13 +185,19 @@ export const Vieweable = styled.div`
   justify-content: center;
   align-items: center;
   flex-direction: column;
+
+  ${(props) =>
+    props.state === "Add" &&
+    css`
+      justify-content: flex-start;
+    `}
 `;
 
 export const Post = styled.div`
   height: 8.5vw;
   width: 100%;
   border-radius: 1vw;
-  margin: 3%;
+  margin: 1.5%;
   padding: 2%;
   box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.2);
   background-color: white;
@@ -200,7 +228,7 @@ export const PostButtons = styled.div`
 export const TitleContainer = styled.div`
   width: 80%;
   height: 20%;
-  padding: 3% 0;
+  padding: 1% 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -214,8 +242,29 @@ export const Input = styled.input`
   font-family: "Montserrat", sans-serif;
   font-style: normal;
   font-weight: bold;
-  font-size: 2vw;
+  font-size: 1.3vw;
   color: black;
   border-radius: 0.7vw;
   box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.5);
+  padding: 2% 3%;
+  width: 50%;
+  height: 2vw;
+`;
+
+export const SendButton = styled.button`
+  background-color: #1857ee;
+  border-radius: 3vw;
+  width: 20%;
+  height: 3.7vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Montserrat", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.5vw;
+  color: white;
+  border-style: none;
+  outline: none;
+  margin-top: 2%;
 `;

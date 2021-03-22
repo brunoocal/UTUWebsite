@@ -9,6 +9,10 @@ export const ItemContainer = styled.div`
   flex-direction: column;
   position: relative;
 
+  & > a {
+    text-decoration: none;
+  }
+
   ${(props) =>
     props.dropdown &&
     css`

@@ -19,6 +19,9 @@ import {
   PostButtons,
   TitleContainer,
   Input,
+  SendButton,
+  SwalText,
+  SwalTitle,
 } from "@styles/Panel.js";
 
 import { Title as HeaderTitle } from "@components/Header/styles.js";
@@ -39,6 +42,8 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useState, useEffect } from "react";
 import firebase from "../config/Firebase";
+import moment from "moment";
+import swal from "@sweetalert/with-react";
 
 class MyUploadAdapter {
   constructor(loader) {
@@ -105,17 +110,18 @@ class MyUploadAdapter {
 }
 
 const Panel = () => {
-  const [activeRow, setActiveRow] = useState("Add");
-  const [posts, setPostsData] = useState(() => {
-    console.log("inizialicando posts");
-    return [];
-  });
+  const [activeRow, setActiveRow] = useState("List");
+  const [posts, setPostsData] = useState([]);
   const [inversePosts, setInversePosts] = useState([]);
   const [addedPost, setAddedPost] = useState({});
+  const [removedPost, setRemovedPost] = useState({});
+  const [postDataForSend, setPostDataForSend] = useState({});
+  const [ListCharged, setListCharged] = useState(false);
+  const [seconds, setSeconds] = useState(0);
 
   const rows = [
-    { id: 0, icon: List, text: "Lista" },
-    { id: 1, icon: Add, text: "Añadir" },
+    { id: 0, icon: List, text: "Lista", state: "List" },
+    { id: 1, icon: Add, text: "Añadir", state: "Add" },
   ];
 
   const setPostInData = async (title, data, date) => {
@@ -136,14 +142,19 @@ const Panel = () => {
 
     let newPostID;
 
-    if (
-      !lastPostRef !== undefined ||
-      !lastPostRef !== null ||
-      typeof lastPostRef === "object"
-    ) {
-      const keys = Object.keys(lastPostRef);
-      const lastPostID = keys[0];
-      newPostID = parseInt(lastPostID) + 1;
+    if (lastPostRef !== undefined) {
+      if (lastPostRef !== null) {
+        if (typeof lastPostRef === "object") {
+          console.log(lastPostRef);
+          const keys = Object.keys(lastPostRef);
+          const lastPostID = keys[0];
+          newPostID = parseInt(lastPostID) + 1;
+        }
+      }
+    }
+
+    if (newPostID === undefined || newPostID === NaN) {
+      newPostID = 0;
     }
 
     firebase
@@ -159,24 +170,122 @@ const Panel = () => {
         (error) => {
           if (error) {
             console.log(error);
-            return {
-              error: true,
-              errorSyntax: error,
-            };
+            swal({
+              className: "SweetAlerts-global-add",
+              content: (
+                <div>
+                  <SwalTitle>Post no añadido!</SwalTitle>
+                  <SwalText>Ocurrió un error inesperado</SwalText>
+                  <SwalText>Compruebe su conexión a internet</SwalText>
+                </div>
+              ),
+              icon: "error",
+            });
           } else {
-            return {
-              success: true,
-            };
+            swal({
+              className: "SweetAlerts-global-add",
+              content: (
+                <div>
+                  <SwalTitle>Post añadido!</SwalTitle>
+                  <SwalText>{`Título: ${title}`}</SwalText>
+                  <SwalText>{`Id: ${newPostID}`}</SwalText>
+                </div>
+              ),
+              icon: "success",
+            }).then((value) => {
+              if (newPostID === 0) {
+                window.location = location;
+              }
+              setActiveRow("List");
+            });
           }
         }
       );
   };
+
+  const handleSendPost = async () => {
+    try {
+      if (
+        (postDataForSend.title !== null ||
+          postDataForSend.title !== undefined) &&
+        (postDataForSend.data !== null ||
+          postDataForSend.data !== undefined ||
+          typeof postDataForSend.data === "string") &&
+        postDataForSend.data.length > 0
+      ) {
+        await setPostInData(
+          postDataForSend.title,
+          postDataForSend.data,
+          moment().format()
+        );
+      } else {
+        swal({
+          className: "SweetAlerts-global-add",
+          content: (
+            <div>
+              <SwalTitle>¡Post no añadido!</SwalTitle>
+              <SwalText>
+                Debe ingresar tanto un título como un texto en el editor
+              </SwalText>
+              <SwalText>Vuelva a intentarlo</SwalText>
+            </div>
+          ),
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      swal({
+        className: "SweetAlerts-global-add",
+        content: (
+          <div>
+            <SwalTitle>¡Post no añadido!</SwalTitle>
+            <SwalText>
+              Debe ingresar tanto un título como un texto en el editor
+            </SwalText>
+            <SwalText>Vuelva a intentarlo</SwalText>
+          </div>
+        ),
+        icon: "error",
+      });
+    }
+  };
+
+  useEffect(() => {
+    moment.locale("es");
+
+    moment.relativeTimeThreshold("ss", 10);
+    const interval = setInterval(() => {
+      setSeconds((seconds) => seconds + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (posts.length > 0) {
+      try {
+        const first = posts[0];
+        console.log(inversePosts.length <= 1 && Object.keys(first).length >= 0);
+        setListCharged(
+          inversePosts.length <= 1 && Object.keys(first).length >= 0
+        );
+      } catch (e) {
+        console.log(e);
+        setListCharged(false);
+      }
+    }
+  }, [posts]);
 
   useEffect(() => {
     if (!posts.some((post) => post.id === addedPost.id)) {
       setPostsData([...posts, addedPost]);
     }
   }, [addedPost]);
+
+  useEffect(() => {
+    setPostsData(posts.filter((post) => post.id !== removedPost.id));
+  }, [removedPost]);
 
   useEffect(() => {
     const postsForInverse = [...posts];
@@ -200,7 +309,14 @@ const Panel = () => {
         setAddedPost(snapshot.val());
       };
 
+      const onChildRemoved = (snapshot) => {
+        console.log(snapshot.val());
+        setRemovedPost(snapshot.val());
+      };
+
       postsListRef.on("child_added", onChildAdded, onError);
+
+      postsListRef.on("child_removed", onChildRemoved, onError);
     };
 
     postsListRef.once("value", onInitialLoad, onError);
@@ -210,11 +326,29 @@ const Panel = () => {
     };
   }, [firebase.database]);
 
+  useEffect(() => {
+    let intervalId;
+    if (!ListCharged && activeRow === "List") {
+      intervalId = setInterval(() => {
+        if (posts.length >= 1) {
+          setListCharged(true);
+        }
+      });
+    } else {
+      console.log("holaaa clear");
+      clearInterval(intervalId);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [ListCharged, activeRow]);
+
   const isAuth = getLocalAuth();
 
   const EditorConfig = {
     toolbar: {
-      shouldNotGroupWhenFull: true
+      shouldNotGroupWhenFull: true,
     },
   };
 
@@ -233,7 +367,9 @@ const Panel = () => {
                   return (
                     <RowContainer first={row.id === 0} key={row.id}>
                       <Icon src={row.icon} />
-                      <Text>{row.text}</Text>
+                      <Text onClick={() => setActiveRow(row.state)}>
+                        {row.text}
+                      </Text>
                     </RowContainer>
                   );
                 })}
@@ -252,38 +388,60 @@ const Panel = () => {
                 </Link>
               </HeaderItemContainer>
             </Header>
-            <Vieweable>
+            <Vieweable state={activeRow}>
               {activeRow === "List" ? (
                 <>
                   <Text fontSize={"2.7vw"} color={"rgba(0,0,0,0.7)"}>
                     Lista de posts
                   </Text>
-                  {inversePosts.map((post) => {
-                    return (
-                      <Post key={post.id}>
-                        <PostDetail>
-                          <Text color={"#000"}>{post.title}</Text>
-                          <Text color={"rgba(0,0,0,0.5)"} fontSize={"1.3vw"}>
-                            {post.date}
-                          </Text>
-                        </PostDetail>
-                        <PostButtons>
-                          <Icon
-                            margin={"0 1vw"}
-                            src={Open}
-                            onClick={async () => {
-                              await setPostInData(
-                                post.title,
-                                post.data,
-                                "23-3-2021"
-                              );
-                            }}
-                          ></Icon>
-                          <Icon src={Edit}></Icon>
-                        </PostButtons>
-                      </Post>
-                    );
-                  })}
+                  {!ListCharged ? (
+                    <>
+                      <Text
+                        color={"black"}
+                        fontSize={"2vw"}
+                        margin={"1% 2% 1% 2%"}
+                        textAlign={"center"}
+                      >
+                        Actualmente no hay posts creados, ¡cree uno nuevo en el
+                        menú añadir!
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      {inversePosts.map((post) => {
+                        return (
+                          <Post key={post.id}>
+                            <PostDetail>
+                              <Text color={"#000"}>{post.title}</Text>
+                              <Text
+                                color={"rgba(0,0,0,0.5)"}
+                                fontSize={"1.3vw"}
+                              >
+                                {moment(post.date).fromNow()}
+                              </Text>
+                              <Text color={"rgba(0,0,0,0.0)"} fontSize={"0px"}>
+                                {seconds}
+                              </Text>
+                            </PostDetail>
+                            <PostButtons>
+                              <Icon
+                                margin={"0 1vw"}
+                                src={Open}
+                                onClick={async () => {
+                                  await setPostInData(
+                                    post.title,
+                                    post.data,
+                                    moment().format()
+                                  );
+                                }}
+                              ></Icon>
+                              <Icon src={Edit}></Icon>
+                            </PostButtons>
+                          </Post>
+                        );
+                      })}
+                    </>
+                  )}
                 </>
               ) : (
                 activeRow === "Add" && (
@@ -301,12 +459,19 @@ const Panel = () => {
                       <Text
                         fontSize={"2vw"}
                         textAlign={"center"}
-                        margin={"0"}
+                        margin={"0 0 1% 0"}
                         color={"rgba(0,0,0,0.7)"}
                       >
                         Insertar título
                       </Text>
-                      <Input />
+                      <Input
+                        onChange={(e) =>
+                          setPostDataForSend({
+                            ...postDataForSend,
+                            title: e.target.value,
+                          })
+                        }
+                      />
                     </TitleContainer>
 
                     <CKEditor
@@ -322,15 +487,15 @@ const Panel = () => {
                       }}
                       onChange={(event, editor) => {
                         const data = editor.getData();
-                        console.log({ event, editor, data });
-                      }}
-                      onBlur={(event, editor) => {
-                        console.log("Blur.", editor);
-                      }}
-                      onFocus={(event, editor) => {
-                        console.log("Focus.", editor);
+                        setPostDataForSend({
+                          ...postDataForSend,
+                          data: data,
+                        });
                       }}
                     />
+                    <SendButton onClick={() => handleSendPost(null)}>
+                      ENVIAR
+                    </SendButton>
                   </>
                 )
               )}

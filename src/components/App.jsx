@@ -13,14 +13,15 @@ const App = () => {
       <Switch>
         <Route exact path="/">
           <Home />
-
-          <Test></Test>
         </Route>
         <Route exact path="/admin">
           <Admin />
         </Route>
         <Route exact path="/panel">
           <Panel />
+        </Route>
+        <Route exact path="/posts/:postId">
+          {/* <Post/> */}
         </Route>
       </Switch>
     </Router>

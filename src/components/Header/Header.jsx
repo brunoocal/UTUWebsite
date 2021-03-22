@@ -39,7 +39,7 @@ const Header = () => {
           <HeaderItem
             responsive={ResponsiveQuerys}
             title={"Inicio"}
-            url={"/inicio"}
+            url={"/"}
           ></HeaderItem>
           <HeaderItem
             responsive={ResponsiveQuerys}
@@ -65,7 +65,7 @@ const Header = () => {
             <HeaderSubItem
               responsive={ResponsiveQuerys}
               title={"Logearse"}
-              url={"login"}
+              url={"admin"}
             ></HeaderSubItem>
             <HeaderSubItem
               responsive={ResponsiveQuerys}
