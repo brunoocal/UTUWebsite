@@ -1,9 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const TerserPlugin = require("terser-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 module.exports = {
   entry: "./src/index.js",
@@ -12,13 +10,13 @@ module.exports = {
     filename: "bundle[contenthash].js",
     publicPath: "/",
   },
-  mode: "production",
   resolve: {
     extensions: [".js", ".jsx"],
     alias: {
       "@components": path.resolve(__dirname, "src/components/"),
       "@styles": path.resolve(__dirname, "src/styles/"),
       "@pages": path.resolve(__dirname, "src/pages"),
+      "@images": path.resolve(__dirname, "src/static/images"),
     },
   },
   module: {
@@ -36,7 +34,14 @@ module.exports = {
       },
       {
         test: /\.s[ac]ss$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+      {
+        test: /\.(png|jpg|jpeg|svg|mp4|avi)$/,
+        type: "asset/resource",
+        generator: {
+          filename: "static/images/[hash][ext][query]",
+        },
       },
     ],
   },
@@ -48,10 +53,13 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "main[contenthash].css",
     }),
-    new CleanWebpackPlugin(),
+    new Dotenv(),
   ],
-  optimization: {
-    minimize: true,
-    minimizer: [new CssMinimizerPlugin(), new TerserPlugin()],
+
+  devServer: {
+    contentBase: path.join(__dirname, "dist"),
+    compress: true,
+    port: 8080,
+    historyApiFallback: true,
   },
 };
