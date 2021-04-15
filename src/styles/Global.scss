@@ -108,15 +108,33 @@ select {
   min-height: 20vw !important;
 }
 
+.ck.ck-content.ck-editor__editable.ck-editor__editable_inline {
+  font-family: "Gotham Book", sans-serif;
+  & > p {
+    font-size: 1.4vw !important;
+  }
+
+  & > h2 {
+    font-size: 2.8vw !important;
+  }
+
+  & > h3 {
+    font-size: 2.2vw !important;
+  }
+
+  & > h4 {
+    font-size: 1.8vw !important;
+  }
+}
+
 .SweetAlerts-global {
   font-family: "Montserrat", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 1.5vw;
-  
 }
 
-.SweetAlerts-global-add{
+.SweetAlerts-global-add {
   font-family: "Montserrat", sans-serif;
   font-style: normal;
   font-weight: normal;
@@ -124,3 +142,27 @@ select {
   margin-left: 24vw;
 }
 
+.ck.ck-dropdown__panel {
+  max-height: 18vw !important;
+  overflow-y: auto !important;
+}
+
+.ck-content .text-tiny {
+  font-size: 1.1vw !important;
+  opacity: 1;
+}
+
+.ck-content .text-small {
+  font-size: 1.4vw !important;
+  opacity: 1;
+}
+
+.ck-content .text-big {
+  font-size: 1.7vw !important;
+  opacity: 1;
+}
+
+.ck-content .text-huge {
+  font-size: 2.4vw !important;
+  opacity: 1;
+}

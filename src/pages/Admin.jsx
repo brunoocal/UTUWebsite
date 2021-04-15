@@ -8,6 +8,7 @@ import {
   Success,
   Error,
 } from "@styles/Admin.js";
+import "@styles/editorStyles.css";
 import Header from "@components/Header/Header.jsx";
 import { Hero } from "@styles/Home.js";
 import { USER, PASSWORD } from "../config/ENV";

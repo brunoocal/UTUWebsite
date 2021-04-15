@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
 export const PanelContainer = styled.div`
   width: 100vw;
@@ -148,13 +148,49 @@ export const Text = styled.p`
     `}
 
     ${(props) =>
+    props.fontWeight &&
+    css`
+      font-weight: ${props.fontWeight};
+    `}
+
+    ${(props) =>
+    props.font &&
+    css`
+      font-family: ${props.font};
+    `}
+
+    ${(props) =>
     props.textAlign &&
     css`
       text-align: ${props.textAlign};
     `}
+
+    ${(props) =>
+    props.backgroundColor &&
+    css`
+      background: ${props.backgroundColor};
+    `}
+
+    ${(props) =>
+    props.padding &&
+    css`
+      padding: ${props.padding};
+    `}
+
+
+    ${(props) =>
+    props.fadeIn &&
+    css`
+      animation: ${fadeInKeyframes} 1s forwards;
+    `}
+    ${(props) =>
+    props.fadeInContent &&
+    css`
+      animation: ${fadeInContentKeyframes} 1s forwards;
+    `}
 `;
 
-export const SwalText = styled.p`
+export const SwalText = styled.p` 
   font-family: "Montserrat", sans-serif;
   font-style: normal;
   font-weight: normal;
@@ -267,4 +303,25 @@ export const SendButton = styled.button`
   border-style: none;
   outline: none;
   margin-top: 2%;
+`;
+
+const fadeInKeyframes = keyframes`
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+`;
+
+const fadeInContentKeyframes = keyframes`
+    0%{
+        opacity: 0;
+    }
+    60%{
+      opacity: 0;
+    }
+    90%{
+        opacity: 1;
+    }
 `;

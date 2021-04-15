@@ -1,3 +1,5 @@
+import React from "react";
+
 import { useMediaQuery } from "react-responsive";
 import {
   HeaderContainer,
@@ -54,7 +56,7 @@ const Header = () => {
             <HeaderSubItem
               responsive={ResponsiveQuerys}
               title={"Calendario"}
-              url={"calendario"}
+              url={"/calendario"}
             ></HeaderSubItem>
           </HeaderItem>
           <HeaderItem
@@ -64,13 +66,18 @@ const Header = () => {
           >
             <HeaderSubItem
               responsive={ResponsiveQuerys}
+              title={"Panel"}
+              url={"/panel"}
+            ></HeaderSubItem>
+            <HeaderSubItem
+              responsive={ResponsiveQuerys}
               title={"Logearse"}
-              url={"admin"}
+              url={"/admin"}
             ></HeaderSubItem>
             <HeaderSubItem
               responsive={ResponsiveQuerys}
               title={"Cerrar sesión"}
-              url={"signout"}
+              url={"/signout"}
             ></HeaderSubItem>
           </HeaderItem>
           <HeaderItem
@@ -84,4 +91,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default React.memo(Header);

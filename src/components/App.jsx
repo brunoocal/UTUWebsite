@@ -1,11 +1,13 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Home from "@pages/Home";
-import Test from "./CKEditor/Editor.jsx";
+
 import "@styles/Global.scss";
 import "@styles/SweetAnimations.scss";
 import Admin from "@pages/Admin";
 import Panel from "@pages/Panel";
+import Post from "@components/Post/Post";
+import Test from "@pages/Test";
 
 const App = () => {
   return (
@@ -21,7 +23,7 @@ const App = () => {
           <Panel />
         </Route>
         <Route exact path="/posts/:postId">
-          {/* <Post/> */}
+          <Post />
         </Route>
       </Switch>
     </Router>

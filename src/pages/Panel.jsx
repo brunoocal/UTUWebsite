@@ -25,7 +25,7 @@ import {
 } from "@styles/Panel.js";
 
 import { Title as HeaderTitle } from "@components/Header/styles.js";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import getLocalAuth from "../hooks/getLocalAuth";
 
 import {
@@ -38,8 +38,8 @@ import Add from "@images/admin-add.png";
 import Logo from "@images/logo64.png";
 import Edit from "@images/edit.png";
 import Open from "@images/open.png";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import Delete from "@images/delete.png";
+import CKEditor from "rc-ckfulleditor";
 import { useState, useEffect } from "react";
 import firebase from "../config/Firebase";
 import moment from "moment";
@@ -115,9 +115,12 @@ const Panel = () => {
   const [inversePosts, setInversePosts] = useState([]);
   const [addedPost, setAddedPost] = useState({});
   const [removedPost, setRemovedPost] = useState({});
+  const [updatedPost, setUpdatedPost] = useState({});
   const [postDataForSend, setPostDataForSend] = useState({});
   const [ListCharged, setListCharged] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [editorData, setEditorData] = useState({ data: "" });
+  const history = useHistory();
 
   const rows = [
     { id: 0, icon: List, text: "Lista", state: "List" },
@@ -203,21 +206,79 @@ const Panel = () => {
       );
   };
 
-  const handleSendPost = async () => {
+  const updatePostInData = async (title, data, date, id) => {
+    firebase
+      .database()
+      .ref("posts/" + id)
+      .set(
+        {
+          title,
+          data,
+          date,
+          id,
+        },
+        (error) => {
+          if (error) {
+            console.log(error);
+            swal({
+              className: "SweetAlerts-global-add",
+              content: (
+                <div>
+                  <SwalTitle>Post no actualizado!</SwalTitle>
+                  <SwalText>Ocurrió un error inesperado</SwalText>
+                  <SwalText>Compruebe su conexión a internet</SwalText>
+                </div>
+              ),
+              icon: "error",
+            });
+          } else {
+            swal({
+              className: "SweetAlerts-global-add",
+              content: (
+                <div>
+                  <SwalTitle>Post actualizado!</SwalTitle>
+                  <SwalText>{`Título: ${title}`}</SwalText>
+                  <SwalText>{`Id: ${id}`}</SwalText>
+                </div>
+              ),
+              icon: "success",
+            }).then((value) => {
+              if (id === 0) {
+                window.location = location;
+              }
+              setActiveRow("List");
+            });
+          }
+        }
+      );
+  };
+
+  const handleSendPost = async (state) => {
     try {
       if (
         (postDataForSend.title !== null ||
           postDataForSend.title !== undefined) &&
+        postDataForSend.title.length > 1 &&
         (postDataForSend.data !== null ||
           postDataForSend.data !== undefined ||
           typeof postDataForSend.data === "string") &&
-        postDataForSend.data.length > 0
+        postDataForSend.data.length > 1
       ) {
-        await setPostInData(
-          postDataForSend.title,
-          postDataForSend.data,
-          moment().format()
-        );
+        if (state === "Update") {
+          await updatePostInData(
+            postDataForSend.title,
+            postDataForSend.data,
+            moment().format(),
+            postDataForSend.id
+          );
+          setEditorData({ ...editorData, state: "" });
+        } else {
+          await setPostInData(
+            postDataForSend.title,
+            postDataForSend.data,
+            moment().format()
+          );
+        }
       } else {
         swal({
           className: "SweetAlerts-global-add",
@@ -284,6 +345,17 @@ const Panel = () => {
   }, [addedPost]);
 
   useEffect(() => {
+    const updatedPostData = posts.map((post) => {
+      if (post.id === updatedPost.id) {
+        return updatedPost;
+      }
+      return post;
+    });
+    console.log(updatedPostData);
+    setPostsData(updatedPostData);
+  }, [updatedPost]);
+
+  useEffect(() => {
     setPostsData(posts.filter((post) => post.id !== removedPost.id));
   }, [removedPost]);
 
@@ -302,7 +374,10 @@ const Panel = () => {
     const onInitialLoad = (snapshot) => {
       const snapshotVal = snapshot.val();
       console.log(snapshotVal);
-      setPostsData([...snapshotVal]);
+
+      const snapshotFiltered = snapshotVal.filter((n) => n);
+      console.log(snapshotFiltered);
+      setPostsData([...snapshotFiltered]);
 
       const onChildAdded = (snapshot, prevId) => {
         console.log(snapshot.val());
@@ -314,9 +389,16 @@ const Panel = () => {
         setRemovedPost(snapshot.val());
       };
 
+      const onChildChanged = (snapshot) => {
+        console.log(snapshot.val());
+        setUpdatedPost(snapshot.val());
+      };
+
       postsListRef.on("child_added", onChildAdded, onError);
 
       postsListRef.on("child_removed", onChildRemoved, onError);
+
+      postsListRef.on("child_changed", onChildChanged, onError);
     };
 
     postsListRef.once("value", onInitialLoad, onError);
@@ -350,6 +432,9 @@ const Panel = () => {
     toolbar: {
       shouldNotGroupWhenFull: true,
     },
+    fontSize: {
+      options: ["tiny", "small", "default", "big", "huge"],
+    },
   };
 
   if (isAuth) {
@@ -367,7 +452,15 @@ const Panel = () => {
                   return (
                     <RowContainer first={row.id === 0} key={row.id}>
                       <Icon src={row.icon} />
-                      <Text onClick={() => setActiveRow(row.state)}>
+                      <Text
+                        onClick={() => {
+                          if (row.state === "Add") {
+                            setEditorData({ data: "" });
+                            setPostDataForSend({});
+                          }
+                          setActiveRow(row.state);
+                        }}
+                      >
                         {row.text}
                       </Text>
                     </RowContainer>
@@ -425,17 +518,34 @@ const Panel = () => {
                             </PostDetail>
                             <PostButtons>
                               <Icon
-                                margin={"0 1vw"}
+                                margin={"0 0.5vw"}
                                 src={Open}
-                                onClick={async () => {
-                                  await setPostInData(
-                                    post.title,
-                                    post.data,
-                                    moment().format()
-                                  );
+                                onClick={() =>
+                                  history.push(`/posts/${post.id}`)
+                                }
+                              ></Icon>
+                              <Icon
+                                margin={"0 0.5vw"}
+                                src={Delete}
+                                onClick={() => {
+                                  const postRef = firebase
+                                    .database()
+                                    .ref("posts/" + post.id);
+
+                                  postRef.remove();
                                 }}
                               ></Icon>
-                              <Icon src={Edit}></Icon>
+                              <Icon
+                                margin={"0 0.5vw"}
+                                onClick={() => {
+                                  setEditorData({ ...post, state: "Update" });
+                                  setPostDataForSend({
+                                    ...post,
+                                  });
+                                  setActiveRow("Add");
+                                }}
+                                src={Edit}
+                              ></Icon>
                             </PostButtons>
                           </Post>
                         );
@@ -465,6 +575,11 @@ const Panel = () => {
                         Insertar título
                       </Text>
                       <Input
+                        value={
+                          !postDataForSend.title
+                            ? undefined
+                            : postDataForSend.title
+                        }
                         onChange={(e) =>
                           setPostDataForSend({
                             ...postDataForSend,
@@ -475,8 +590,7 @@ const Panel = () => {
                     </TitleContainer>
 
                     <CKEditor
-                      editor={ClassicEditor}
-                      data=""
+                      data={editorData.data}
                       config={EditorConfig}
                       onReady={(editor) => {
                         editor.plugins.get(
@@ -493,7 +607,13 @@ const Panel = () => {
                         });
                       }}
                     />
-                    <SendButton onClick={() => handleSendPost(null)}>
+                    <SendButton
+                      onClick={() => {
+                        handleSendPost(
+                          !editorData.state ? "" : editorData.state
+                        );
+                      }}
+                    >
                       ENVIAR
                     </SendButton>
                   </>

@@ -32,7 +32,11 @@ const HeaderItem = ({ title, responsive, children, url, dropdown }) => {
 
   return (
     <>
-      <ItemContainer dropdown onClick={() => onClick(!click)} responsive={responsive}>
+      <ItemContainer
+        dropdown
+        onClick={() => onClick(!click)}
+        responsive={responsive}
+      >
         <Title>{title}</Title>
         {children && (
           <>
